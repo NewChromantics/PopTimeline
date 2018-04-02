@@ -97,7 +97,6 @@ namespace PopTimeline
 		public abstract List<StreamDataItem>	GetStreamData(DataStreamMeta StreamMeta,TimeUnit MinTime,TimeUnit MaxTime);
 		public abstract StreamDataItem			GetNearestOrPrevStreamData(DataStreamMeta StreamMeta, ref TimeUnit Time);
 		public abstract StreamDataItem			GetNearestOrNextStreamData(DataStreamMeta StreamMeta, ref TimeUnit Time);
-		public abstract int						GetDataCount (DataStreamMeta StreamMeta);
 		public abstract void					GetTimeRange (out PopTimeline.TimeUnit Min, out PopTimeline.TimeUnit Max);
 	}
 }
@@ -178,6 +177,9 @@ namespace PopTimeline
 					if (DrawStreamDataRect.width <= 2.0f)
 						DrawStreamDataRect.width = MinWidthPx;
 
+					//	giant rects kill performance (CPU renderer??)
+					DrawStreamDataRect = DrawStreamDataRect.ClipToParent(StreamRect);
+
 					if (State == DataState.Loaded)
 					{
 						EditorGUI.DrawRect(DrawStreamDataRect, Colour);
@@ -212,8 +214,11 @@ namespace PopTimeline
 					var DrawStreamDataRect = DrawMarker(DataTimeLeft, DataTimeRight, Colour, State);
 
 					//	put some notches in long data
+					//	gr: correct the notches for the clipping change
+					//	gr: also, on mega long data, this causes a giant loop. start & end at nearest (also fixes above)
 					var DurationMs = DataTimeRight.Time - DataTimeLeft.Time;
-					for (int NotchMs = 1000; NotchMs < DurationMs;	NotchMs+=1000 )
+					var MaxLoopDuration = 10000;
+					for (int NotchMs = 1000; NotchMs < DurationMs && DurationMs < MaxLoopDuration;	NotchMs+=1000 )
 					{
 						var LeftNorm = GetTimeNormalised(LeftTime, RightTime, new TimeUnit(DataTimeLeft.Time+NotchMs));
 						//var RightNorm = LeftNorm;
@@ -221,6 +226,7 @@ namespace PopTimeline
 						StreamDataRect.width = 0;
 						var NotchDrawStreamDataRect = PopMath.RectMult(StreamDataRect, StreamRect);
 						NotchDrawStreamDataRect.width = MinWidthPx;
+						NotchDrawStreamDataRect = NotchDrawStreamDataRect.ClipToParent(StreamRect);
 						EditorGUI.DrawRect(NotchDrawStreamDataRect, BlockNotchColour);
 					}
 
