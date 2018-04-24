@@ -61,6 +61,7 @@ namespace PopTimeline
 	//	stream meta
 	public class DataStreamMeta
 	{
+		public int?		NotchStepMs = null;	//	draw a notch every X ms to divide long data
 		public string	Name;
 		public Color 	Colour = Color.red;
 		public bool		Draggable { get { return OnDragged != null; } }
@@ -218,7 +219,8 @@ namespace PopTimeline
 					//	gr: also, on mega long data, this causes a giant loop. start & end at nearest (also fixes above)
 					var DurationMs = DataTimeRight.Time - DataTimeLeft.Time;
 					var MaxLoopDuration = 10000;
-					for (int NotchMs = 1000; NotchMs < DurationMs && DurationMs < MaxLoopDuration;	NotchMs+=1000 )
+					var NotchStep = Stream.NotchStepMs.HasValue ? Stream.NotchStepMs.Value : DurationMs;
+					for (int NotchMs = NotchStep; NotchMs < DurationMs && DurationMs < MaxLoopDuration;	NotchMs+=NotchStep )
 					{
 						var LeftNorm = GetTimeNormalised(LeftTime, RightTime, new TimeUnit(DataTimeLeft.Time+NotchMs));
 						//var RightNorm = LeftNorm;
