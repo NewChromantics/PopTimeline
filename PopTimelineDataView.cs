@@ -553,7 +553,9 @@ namespace PopTimeline
 		TimeUnit?			SelectedTime = null;
 		TimeUnit?			HoverTime = null;
 		TimeUnit			ScrollTimeLeft;
-		TimeUnit			ScrollVisibleTimeRange	{	get	{ return new TimeUnit (1000 * 10); }}
+		TimeUnit 			VisibleTimeRangeMin { get { return new TimeUnit(100 * 1); } }
+		TimeUnit			VisibleTimeRangeMax { get { return new TimeUnit(1000 * 60); } }
+		TimeUnit			ScrollVisibleTimeRange = new TimeUnit(1000 * 10);
 		TimeUnit			ScrollTimeRight			{	get { return new TimeUnit (ScrollTimeLeft.Time + ScrollVisibleTimeRange.Time); } }
 		bool				StickyScroll = true;   //	gr: see if we can detect when there's new right max time and scroll if we were already at the edge
 		bool				StickySelect			{ get { return LastStickySelectTime.HasValue; } }
@@ -918,6 +920,8 @@ namespace PopTimeline
 
 				if (StickyScroll)
 					ScrollTimeLeft = new TimeUnit(RightTime.Time - ScrollVisibleTimeRange.Time);
+
+				ScrollVisibleTimeRange.Time = (int)GUILayout.HorizontalSlider(ScrollVisibleTimeRange.Time, VisibleTimeRangeMin.Time, VisibleTimeRangeMax.Time, GUILayout.ExpandWidth(true));
 
 				var LeftTimef = TimeUnitToFloat(LeftTime);
 				var RightTimef = TimeUnitToFloat(RightTime);
